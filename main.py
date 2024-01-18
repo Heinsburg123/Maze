@@ -22,12 +22,18 @@ def cross(a,b):
     return (a.x*b.y-a.y*b.x)
 
 def check_inter(line1,line2):
-    X=(line2.b*line1.c - line1.b*line2.c)/(line1.a*line2.b-line2.a*line1.b)
-    Y=(line1.a*line2.c-line2.a*line1.c)/(line1.a*line2.b-line2.a*line1.b)
-    if(min(line1.x1,line1.x2)<=X<=max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2)):
+    det=line1.a*line2.b-line2.a*line1.b
+    if(det==0):
+        return True
+    X=(line2.b*line1.c - line1.b*line2.c)/det
+    Y=(line1.a*line2.c-line2.a*line1.c)/det
+    if(min(line1.x1,line1.x2)<X<max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<Y<max(line1.y1,line1.y2)):
         return True
     else:
         return False
+
+def dis(a,b):
+    return (a.x-b.x)**2+(a.y-b.y)**2
 
 c=Canvas(root,bg='white',height=700,width=1500)
 
@@ -104,7 +110,7 @@ def draw(x,y,k):
 def create_map(n):
     x,y=0,0
     if(n==1):
-        draw(100,100,-1)
+        draw(144,140,-1)
         return
     for i in range(0,n):
         if(i==0):
@@ -114,7 +120,6 @@ def create_map(n):
         if(i==n-1):
             x,y=draw(x,y,2)
 create_map(1)
-c.pack()
 b1=Button(root, text='find')
 b2=Button(root,text='clear')
 b1.place(x=20,y=20)
@@ -132,7 +137,7 @@ def cmp(a,b):
             return -1
         else:
             return 1
-    
+
     det=cross(v1,v2)
     if(det>0):
         return -1
@@ -147,19 +152,20 @@ def cmp(a,b):
         return -1
 
 def check(heap,code,line):
+    if(len(heap)==0):
+        return False
     minn=heapq.nsmallest(1,heap)
-    for i in range(len(code[minn[0]])):
-        if(check_inter(line,code[minn[0]][i])):
+    for line2 in code[minn[0]]:
+        if(check_inter(line,code[minn[0]][line2])==True):
             return True
-        else:
-            return False
+    return False
 
 for i in range(len(vertice)):
     vertice[i].y=-vertice[i].y
     vertice[i].id=i
 
 index=[0 for i in range(len(vertice))]
-for i in range(len(vertice)):
+for i in range(7,8):
     global cen
     cen=vertice[i]
     arr=sorted(vertice,key=cmp_to_key(cmp))
@@ -168,40 +174,49 @@ for i in range(len(vertice)):
     code={}
     heap=[]
     heapq.heapify(heap)
-    for j in range(len(vertice)):
+    for j in range(18):
         if(arr[j].id==i):
             continue
+        if(len(heap)>0):
+            minn=heapq.nsmallest(1,heap)
+            for line2 in code[minn[0]]:
+                line=code[minn[0]][line2]
+                print(line.x1,line.y1,line.x2,line.y2)
+            print()
+        seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
+        if(check(heap,code,seg)==False):
+            c.create_line(cen.x,-cen.y,arr[j].x,-arr[j].y)
         prev=arr[j].id-1
+        if(prev==-1):
+            prev=27
         pos=(arr[j].id+1)%len(vertice)
-        print(prev,arr[j].id,pos)
         if(prev!=i):
-            dis1=(cen.x-vertice[prev].x)**2+(cen.y-vertice[prev].y)**2
+            if()
+            dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]))
             seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
             if(index[prev]>j):
                 if(code.get(dis1)==None):
-                    code[dis1]=[]
-                code[dis1].append(seg1)
+                    code[dis1]={}
+                code[dis1][f'{prev},{arr[j].id}']=seg1
                 heapq.heappush(heap,dis1)
             else:
-                #print(dis1)
-                #print(prev,pos,arr[j].id)
-                code.pop(dis1)
-                while(code.get(heapq.nsmallest(1,heap))==None):
-                    heapq.heappop(heap)
+                code[dis1].pop(f'{prev},{arr[j].id}')
+                if(len(code[dis1])==0):
+                    code.pop(dis1)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
+                        heapq.heappop(heap)
         if(pos!=i):
-            dis2=(cen.x-vertice[pos].x)**2+(cen.y-vertice[pos].y)**2
+            dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]))
             seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
             if(index[pos]>j):
                 if(code.get(dis2)==None):
-                    code[dis2]=[]
-                code[dis2].append(seg2)
+                    code[dis2]={}
+                code[dis2][f'{arr[j].id},{pos}']=seg2
                 heapq.heappush(heap,dis2)
             else:
-                code.pop(seg2.length)
-                while(code.get(heapq.nsmallest(1,heap))==None):
-                    heapq.heappop()
-        seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
-        if(check(heap,code,seg)==False):
-            c.create_line(arr[j].x,arr[j].y,cen.x,cen.y)
-
+                code[dis2].pop(f'{arr[j].id},{pos}')
+                if(len(code[dis2])==0):
+                    code.pop(dis2)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None):
+                    heapq.heappop(heap)
 root.mainloop()
