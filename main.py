@@ -43,7 +43,7 @@ def check_inter(line1,line2):
     p4=point(line2.x2,line2.y2)
     if(equal(p1,p3) or equal(p1,p4) or equal(p2,p3) or equal(p2,p4)):
         return False
-    if(min(line1.x1,line1.x2)<X<max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<Y<max(line1.y1,line1.y2) and min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line1.y1,line1.y2)<=Y<=max(line2.y1,line2.y2)):
+    if(min(line1.x1,line1.x2)<X<max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<Y<max(line1.y1,line1.y2)) or (min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line1.y1,line1.y2)<=Y<=max(line2.y1,line2.y2)):
         return True
     else:
         return False
@@ -191,7 +191,7 @@ for i in range(len(vertice)):
 
 index=[0 for i in range(len(vertice))]
 ans={}
-for i in range(15,16):
+for i in range(28):
     global cen
     cen=vertice[i]
     arr=sorted(vertice,key=cmp_to_key(cmp))
@@ -206,8 +206,6 @@ for i in range(15,16):
     code={}
     heap=[]
     heapq.heapify(heap)
-    rec=0
-    end=0
     for j in range(start,28):
         if(arr[j].id==i):
             continue
@@ -216,9 +214,6 @@ for i in range(15,16):
         if(prev==-1):
             prev=27
         pos=(arr[j].id+1)%len(vertice)  
-        if(cross(vec(arr[start],cen),vec(vertice[prev],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))>=0):
-            end=j
-            rec=1
         minn=heapq.nsmallest(1,heap)
         # if(len(heap)>0):
         #     for line2 in code[minn[0]]:
@@ -240,7 +235,7 @@ for i in range(15,16):
                 ans[u].pop(v)
             if(ans.get(u)!=None and len(ans[u])==0):
                 ans.pop(u)
-        if(prev!=i and (cross(vec(arr[start],cen),vec(vertice[prev],cen))>=0 or rec==1)):
+        if(prev!=i and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[prev],cen))<0 and cross(vec(arr[j],cen),vec(vertice[prev],cen))<0)):
             dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
             seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
             if(code.get(dis1)!=None and code[dis1].get(f'{prev},{arr[j].id}')!=None):
@@ -254,7 +249,7 @@ for i in range(15,16):
                     code[dis1]={}
                 code[dis1][f'{prev},{arr[j].id}']=seg1
                 heapq.heappush(heap,dis1)
-        if(pos!=i and (cross(vec(arr[start],cen),vec(vertice[pos],cen))>=0 or rec==1)):
+        if(pos!=i and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))<0 and cross(vec(arr[j],cen),vec(vertice[pos],cen))<0)):
             dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
             seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
             if(code.get(dis2)!=None and code[dis2].get(f'{arr[j].id},{pos}')!=None):
@@ -277,13 +272,14 @@ for i in range(15,16):
             prev=27
         pos=(arr[j].id+1)%len(vertice)
         minn=heapq.nsmallest(1,heap)
-        print(ans)
-        print(arr[j].id)
-        if(len(heap)>0):
-            for line2 in code[minn[0]]:
-                line=code[minn[0]][line2]
-                print(line.x1,line.y1,line.x2,line.y2,j)
-            print()
+        # print(ans)
+        # if(arr[j].id==26):
+        #     print(arr[j].id)
+        # if(len(heap)>0):
+        #     for line2 in code[minn[0]]:
+        #         line=code[minn[0]][line2]
+        #         print(line.x1,line.y1,line.x2,line.y2,j)
+        #     print()
         if(check(heap,code,seg)==False and prev!=i and pos!=i):
             u,v=i,arr[j].id
             if(u>v):
