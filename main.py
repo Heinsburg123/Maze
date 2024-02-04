@@ -285,12 +285,13 @@ for i in range(28):
         #         print(line.x1,line.y1,line.x2,line.y2,j)
         #     print()
         if(check(heap,code,seg)==False and prev!=i and pos!=i):
-            u,v=i,arr[j].id
-            if(u>v):
-                u,v=v,u
-            if(ans.get(u)==None):
-                ans[u]={}
-            ans[u][v]=1
+            if((convex==1 and cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0 or cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0))):
+                u,v=i,arr[j].id
+                if(u>v):
+                    u,v=v,u
+                if(ans.get(u)==None):
+                    ans[u]={}
+                ans[u][v]=1
         # print(u,v)
         if(check(heap,code,seg)==True and prev!=i and pos!=i):
             u,v=i,arr[j].id
