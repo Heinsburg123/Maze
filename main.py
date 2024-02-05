@@ -329,8 +329,16 @@ for i in range(28):
                     code[dis2]={}
                 code[dis2][f'{arr[j].id},{pos}']=seg2
                 heapq.heappush(heap,dis2)
+a=[[] for _ in range(30)]
+w=[[] for _ in range(30)]
+d=[[] for _ in range(30)]
 for i in range(len(vertice)):
     for j in range(i+1,len(vertice)):
         if(ans.get(i)!=None and ans[i].get(j)!=None and ans[i][j]==1):
-            c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
+            a[i].append(j)
+            a[j].append(i)
+            w[i].append(dis(vertice[i],vertice[j]))
+            w[j].append(dis(vertice[i],vertice[j]))
+ans.clear()
+
 root.mainloop()
