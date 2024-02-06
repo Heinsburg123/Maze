@@ -189,6 +189,13 @@ for i in range(len(vertice)):
     vertice[i].y=-vertice[i].y
     vertice[i].id=i
 
+def check_taunt(s1,s2,prev,pos,convex):
+    if(convex==1):
+        return False
+    if(cross(vec(s2,pos),vec(s1,s2))>0 and cross(vec(s2,prev),vec(s1,s2))<0):
+        return False
+    return True
+
 ans={}
 
 def gen_graph(p1,p2):
@@ -291,7 +298,7 @@ def gen_graph(p1,p2):
             if(arr[j].id==-1 or arr[j].id==-2):
                 continue
             if(prev!=i):
-                dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
+                dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]))
                 seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
                 if(code.get(dis1)!=None and code[dis1].get(f'{prev},{arr[j].id}')!=None):
                     code[dis1].pop(f'{prev},{arr[j].id}')
@@ -305,7 +312,7 @@ def gen_graph(p1,p2):
                     code[dis1][f'{prev},{arr[j].id}']=seg1
                     heapq.heappush(heap,dis1)
             if(pos!=i):
-                dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
+                dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]))
                 seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
                 if(code.get(dis2)!=None and code[dis2].get(f'{arr[j].id},{pos}')!=None):
                     code[dis2].pop(f'{arr[j].id},{pos}')

@@ -185,6 +185,13 @@ def check(heap,code,line):
             return True
     return False
 
+def check_taunt(s1,s2,prev,pos,convex):
+    if(convex==1):
+        return False
+    if(cross(vec(s2,pos),vec(s1,s2))>0 and cross(vec(s2,prev),vec(s1,s2))<0):
+        return False
+    return True
+
 for i in range(len(vertice)):
     vertice[i].y=-vertice[i].y
     vertice[i].id=i
@@ -197,6 +204,8 @@ for i in range(28):
     convex=0
     if(cross(vec(cen,vertice[i-1]),vec(vertice[(i+1)%28],cen))<0):
         convex=1
+    if(convex==1):
+        continue
     arr=sorted(vertice,key=cmp_to_key(cmp))
     start=1
     for j in range(len(arr)):
@@ -216,15 +225,9 @@ for i in range(28):
         prev=arr[j].id-1
         if(prev==-1):
             prev=27
-        pos=(arr[j].id+1)%len(vertice)  
-        # minn=heapq.nsmallest(1,heap)
-        # if(len(heap)>0):
-        #     for line2 in code[minn[0]]:
-        #         line=code[minn[0]][line2]
-        #         print(line.x1,line.y1,line.x2,line.y2)
-        #     print()
+        pos=(arr[j].id+1)%len(vertice)      
         if(check(heap,code,seg)==False and prev!=i and pos!=i):
-            if((convex==1 and cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0 or cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0))):
+            if((convex==1 and cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0 or cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%28],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
                 u,v=i,arr[j].id
                 if(u>v):
                     u,v=v,u
@@ -283,7 +286,7 @@ for i in range(28):
         #         print(line.x1,line.y1,line.x2,line.y2,j)
         #     print()
         if(check(heap,code,seg)==False and prev!=i and pos!=i):
-            if((convex==1 and cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0 or cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0))):
+            if((convex==1 and cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%28],cen))>0 or cross(vec(arr[j],cen),vec(vertice[i-1],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%28],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
                 u,v=i,arr[j].id
                 if(u>v):
                     u,v=v,u
@@ -326,6 +329,7 @@ for i in range(28):
                     code[dis2]={}
                 code[dis2][f'{arr[j].id},{pos}']=seg2
                 heapq.heappush(heap,dis2)
+
 print(ans)
 for i in range(len(vertice)):
     for j in range(i+1,len(vertice)):
