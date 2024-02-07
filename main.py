@@ -141,41 +141,6 @@ b2=Button(root,text='clear')
 b1.place(x=20,y=20)
 b2.place(x=100,y=20)
 
-def cmp(a,b):
-    v1=point(a.x-cen.x,a.y-cen.y)
-    v2=point(b.x-cen.x,b.y-cen.y)
-    if(v1.x==0 and v1.y==0):
-        return -1
-    if(v2.x==0 and v2.y==0):
-        return 1
-    if(v1.x<=0 and v2.x>0):
-        return -1
-    if(v1.x>0 and v2.x<=0):
-        return 1
-    if(v1.x==0 and v2.x==0):
-        if(abs(v1.y)<=abs(v2.y)):
-            return -1
-        else:
-            return 1
-    if(v1.y==0 and v2.y==0):
-        if(abs(v1.x)<=abs(v2.x)):
-            return -1
-        else:
-            return 1
-
-    det=cross(v1,v2)
-    if(det>0):
-        return -1
-    if(det<0):
-        return 1
-
-    d1=v1.x**2 + v1.y**2
-    d2=v2.x**2 + v2.y**2
-    if(d1>d2):
-        return 1
-    else:
-        return -1
-
 def check(heap,code,line):
     if(len(heap)==0):
         return False
@@ -198,139 +163,178 @@ def check_taunt(s1,s2,prev,pos,convex):
 
 ans={}
 
-def gen_graph(p1,p2):
-    vertice.append(p1)
-    vertice.append(p2)
-    for i in range(len(vertice)):
-        global cen
-        cen=vertice[i]
+def line_of_sight(cen,extra):
+    def cmp(a,b):
+        v1=point(a.x-cen.x,a.y-cen.y)
+        v2=point(b.x-cen.x,b.y-cen.y)
+        if(v1.x==0 and v1.y==0):
+            return -1
+        if(v2.x==0 and v2.y==0):
+            return 1
+        if(v1.x<=0 and v2.x>0):
+            return -1
+        if(v1.x>0 and v2.x<=0):
+            return 1
+        if(v1.x==0 and v2.x==0):
+            if(abs(v1.y)<=abs(v2.y)):
+                return -1
+            else:
+                return 1
+        if(v1.y==0 and v2.y==0):
+            if(abs(v1.x)<=abs(v2.x)):
+                return -1
+            else:
+                return 1
+
+        det=cross(v1,v2)
+        if(det>0):
+            return -1
+        if(det<0):
+            return 1
+
+        d1=v1.x**2 + v1.y**2
+        d2=v2.x**2 + v2.y**2
+        if(d1>d2):
+            return 1
+        else:
+            return -1
+    convex=0
+    if(cross(vec(cen,vertice[(i-1)%(len(vertice)-extra)]),vec(vertice[(i+1)%(len(vertice)-extra)],cen))<0):
+        convex=1
+    if(cen.id<0):
         convex=0
-        p1.id=-1
-        p2.id=-2
-        if(cross(vec(cen,vertice[(i-1)%(len(vertice)-2)]),vec(vertice[(i+1)%(len(vertice)-2)],cen))<0):
-            convex=1
-        arr=sorted(vertice,key=cmp_to_key(cmp))
-        start=1
-        min_dis=10000000
-        for j in range(1,len(arr)):
-            if(dis(arr[j],cen)<min_dis and arr[j].id!=-1 and arr[j].id!=-2):
-                min_dis=dis(arr[j],cen)
-                start=j
-        code={}
-        heap=[]
-        heapq.heapify(heap)
-        for j in range(start,len(arr)):
-            if(arr[j].id==i):
-                continue
-            seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
-            prev=(arr[j].id-1)%(len(vertice)-2)
-            pos=(arr[j].id+1)%(len(vertice)-2)  
-            if(check(heap,code,seg)==False and prev!=i and pos!=i):
-                if((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-2)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-2)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-2)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-2)],cen))<0)) or vertice[i].id==-1 or vertice[i].id==-2):
-                    u,v=vertice[i].id,arr[j].id
-                    if(u>v):
-                        u,v=v,u
-                    if(ans.get(u)==None):
-                        ans[u]={}
-                    ans[u][v]=1
-            if(check(heap,code,seg)==True and prev!=i and pos!=i):
-                u,v=vertice[i].id,arr[j].id
+    if(convex==1):
+        return
+    arr=sorted(vertice,key=cmp_to_key(cmp))
+    start=1
+    min_dis=10000000
+    for j in range(1,len(arr)):
+        if(dis(arr[j],cen)<min_dis and arr[j].id!=-1 and arr[j].id!=-2):
+            min_dis=dis(arr[j],cen)
+            start=j
+    code={}
+    heap=[]
+    heapq.heapify(heap)
+    for j in range(start,len(arr)):
+        if(arr[j].id==cen.id):
+            continue
+        seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
+        prev=(arr[j].id-1)%(len(vertice)-extra)
+        pos=(arr[j].id+1)%(len(vertice)-extra) 
+        if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
+            if((cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)) or (convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
+                u,v=cen.id,arr[j].id
                 if(u>v):
                     u,v=v,u
-                if(ans.get(u)!=None and ans[u].get(v)!=None):
-                    ans[u].pop(v)
-                if(ans.get(u)!=None and len(ans[u])==0):
-                    ans.pop(u)
-            if(arr[j].id==-1 or arr[j].id==-2):
-                continue
-            if(prev!=i and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[prev],cen))<0 and cross(vec(arr[j],cen),vec(vertice[prev],cen))<0)):
-                dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
-                seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
-                if(code.get(dis1)!=None and code[dis1].get(f'{prev},{arr[j].id}')!=None):
-                    code[dis1].pop(f'{prev},{arr[j].id}')
-                    if(len(code[dis1])==0):
-                        code.pop(dis1)
-                    while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
-                            heapq.heappop(heap)
-                else:
-                    if(code.get(dis1)==None):
-                        code[dis1]={}
-                    code[dis1][f'{prev},{arr[j].id}']=seg1
-                    heapq.heappush(heap,dis1)
-            if(arr[j].id==-1):
-                continue
-            if(pos!=i and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))<0 and cross(vec(arr[j],cen),vec(vertice[pos],cen))<0)):
-                dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
-                seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
-                if(code.get(dis2)!=None and code[dis2].get(f'{arr[j].id},{pos}')!=None):
-                    code[dis2].pop(f'{arr[j].id},{pos}')
-                    if(len(code[dis2])==0):
-                        code.pop(dis2)
-                    while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
-                            heapq.heappop(heap)
-                else:
-                    if(code.get(dis2)==None):
-                        code[dis2]={}
-                    code[dis2][f'{arr[j].id},{pos}']=seg2
-                    heapq.heappush(heap,dis2)
-        for j in range(0,len(arr)):
-            if(arr[j].id==i):
-                continue
-            seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
-            prev=(arr[j].id-1)%(len(vertice)-2)
-            pos=(arr[j].id+1)%(len(vertice)-2)  
-            if(check(heap,code,seg)==False and prev!=i and pos!=i):
-                if((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-2)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-2)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-2)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-2)],cen))<0))):
-                    u,v=vertice[i].id,arr[j].id
-                    if(u>v):
-                        u,v=v,u
-                    if(ans.get(u)==None):
-                        ans[u]={}
-                    ans[u][v]=1
-            if(check(heap,code,seg)==True and prev!=i and pos!=i):
-                u,v=vertice[i].id,arr[j].id
+                if(ans.get(u)==None):
+                    ans[u]={}
+                ans[u][v]=1
+        if(check(heap,code,seg)==True and prev!=cen.id and pos!=cen.id):
+            u,v=cen.id,arr[j].id
+            if(u>v):
+                u,v=v,u
+            if(ans.get(u)!=None and ans[u].get(v)!=None):
+                ans[u].pop(v)
+            if(ans.get(u)!=None and len(ans[u])==0):
+                ans.pop(u)
+        if(prev!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[prev],cen))<0 and cross(vec(arr[j],cen),vec(vertice[prev],cen))<0)):
+            dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
+            seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
+            u,v=prev,arr[j].id
+            if(u>v):
+                u,v=v,u
+            if(code.get(dis1)!=None and code[dis1].get(f'{u},{v}')!=None):
+                code[dis1].pop(f'{u},{v}')
+                if(len(code[dis1])==0):
+                    code.pop(dis1)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
+                        heapq.heappop(heap)
+            else:
+                if(code.get(dis1)==None):
+                    code[dis1]={}
+                code[dis1][f'{u},{v}']=seg1
+                heapq.heappush(heap,dis1)
+        if(pos!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))<0 and cross(vec(arr[j],cen),vec(vertice[pos],cen))<0)):
+            dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
+            seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
+            u,v=arr[j].id,pos
+            if(u>v):
+                u,v=v,u
+            if(code.get(dis2)!=None and code[dis2].get(f'{u},{v}')!=None):
+                code[dis2].pop(f'{u},{v}')
+                if(len(code[dis2])==0):
+                    code.pop(dis2)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
+                        heapq.heappop(heap)
+            else:
+                if(code.get(dis2)==None):
+                    code[dis2]={}
+                code[dis2][f'{u},{v}']=seg2
+                heapq.heappush(heap,dis2)
+    for j in range(len(vertice)):
+        if(arr[j].id==cen.id):
+            continue
+        seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
+        prev=(arr[j].id-1)%(len(vertice)-extra)
+        pos=(arr[j].id+1)%(len(vertice)-extra)  
+        if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
+            if((cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)) or (convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
+                u,v=cen.id,arr[j].id
                 if(u>v):
                     u,v=v,u
-                if(ans.get(u)!=None and ans[u].get(v)):
-                    ans[u].pop(v)
-                if(ans.get(u)!=None and len(ans[u])==0):
-                    ans.pop(u)
-            if(arr[j].id==-1 or arr[j].id==-2):
-                continue
-            if(prev!=i):
-                dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]))
-                seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
-                if(code.get(dis1)!=None and code[dis1].get(f'{prev},{arr[j].id}')!=None):
-                    code[dis1].pop(f'{prev},{arr[j].id}')
-                    if(len(code[dis1])==0):
-                        code.pop(dis1)
-                    while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
-                            heapq.heappop(heap)
-                else:
-                    if(code.get(dis1)==None):
-                        code[dis1]={}
-                    code[dis1][f'{prev},{arr[j].id}']=seg1
-                    heapq.heappush(heap,dis1)
-            if(pos!=i):
-                dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]))
-                seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
-                if(code.get(dis2)!=None and code[dis2].get(f'{arr[j].id},{pos}')!=None):
-                    code[dis2].pop(f'{arr[j].id},{pos}')
-                    if(len(code[dis2])==0):
-                        code.pop(dis2)
-                    while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
-                            heapq.heappop(heap)
-                else:
-                    if(code.get(dis2)==None):
-                        code[dis2]={}
-                    code[dis2][f'{arr[j].id},{pos}']=seg2
-                    heapq.heappush(heap,dis2)
+                if(ans.get(u)==None):
+                    ans[u]={}
+                ans[u][v]=1
+        if(check(heap,code,seg)==True and prev!=cen.id and pos!=cen.id):
+            u,v=cen.id,arr[j].id
+            if(u>v):
+                u,v=v,u
+            if(ans.get(u)!=None and ans[u].get(v)):
+                ans[u].pop(v)
+            if(ans.get(u)!=None and len(ans[u])==0):
+                ans.pop(u)
+        if(arr[j].id==-1 or arr[j].id==-2):
+            continue
+        if(prev!=cen.id):
+            dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
+            seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
+            u,v=prev,arr[j].id
+            if(u>v):
+                u,v=v,u
+            if(code.get(dis1)!=None and code[dis1].get(f'{u},{v}')!=None):
+                code[dis1].pop(f'{u},{v}')
+                if(len(code[dis1])==0):
+                    code.pop(dis1)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
+                        heapq.heappop(heap)
+            else:
+                if(code.get(dis1)==None):
+                    code[dis1]={}
+                code[dis1][f'{u},{v}']=seg1
+                heapq.heappush(heap,dis1)
+        if(pos!=cen.id):
+            dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
+            seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
+            u,v=arr[j].id,pos
+            if(u>v):
+                u,v=v,u
+            if(code.get(dis2)!=None and code[dis2].get(f'{u},{v}')!=None):
+                code[dis2].pop(f'{u},{v}')
+                if(len(code[dis2])==0):
+                    code.pop(dis2)
+                while(len(heap)>0 and code.get(heapq.nsmallest(1,heap)[0])==None ):
+                        heapq.heappop(heap)
+            else:
+                if(code.get(dis2)==None):
+                    code[dis2]={}
+                code[dis2][f'{u},{v}']=seg2
+                heapq.heappush(heap,dis2)
+
+a=[[] for _ in range(1000)]
+w=[[] for _ in range(1000)]
+d=[[] for _ in range(1000)]
 
 def create_data():
-    ans.clear()
-    a=[[] for _ in range(30)]
-    w=[[] for _ in range(30)]
-    d=[[] for _ in range(30)]
     for i in range(len(vertice)):
         for j in range(i+1,len(vertice)):
             if(ans.get(i)!=None and ans[i].get(j)!=None and ans[i][j]==1):
@@ -338,9 +342,22 @@ def create_data():
                 a[j].append(i)
                 w[i].append(dis(vertice[i],vertice[j]))
                 w[j].append(dis(vertice[i],vertice[j]))
+def add_node(p,ind,size):
+    for i in range(size-1):
+        if(ans.get(ind)!=None and ans[ind].get(i)!=None and ans[ind][i]==1):
+            a[size].append(i)
+            a[i].append(size)
+            w[size].append(dis(p,vertice[i]))
+            w[i].append(dis(p,vertice[i]))
+
 dem=0
 p1=point(0,0)
 p2=point(0,0)
+
+for i in range(28):
+    line_of_sight(vertice[i],0)
+
+create_data()
 def click(e):
     global dem,p1,p2
     if(dem>=2):
@@ -348,17 +365,20 @@ def click(e):
     dem+=1
     if(dem==1):
         p1=point(e.x,-e.y)
+        p1.id=-1
+        vertice.append(p1)
+        line_of_sight(p1,1)
+        add_node(p1,-1,len(vertice)-1)
     else:
         p2=point(e.x,-e.y)
-        gen_graph(p1,p2)
-        for i in range(-2,len(vertice)-3):
-            for j in range(i+1,len(vertice)-2):
-                    if(i==-2):
-                        c.create_line(p2.x,-p2.y,vertice[j].x,-vertice[j].y,fill='red')
-                    elif(i==-1):
-                        c.create_line(p1.x,-p1.y,vertice[j].x,-vertice[j].y,fill='red')
-                    else:
-                        c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
+        p2.id=-2
+        vertice.append(p2)
+        line_of_sight(p2,2)
+        add_node(p2,-2,len(vertice)-1)
+        for i in range(len(vertice)):
+            for j in a[i]:
+                c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
+
 c.bind('<Button 1>',click)
 c.pack()
 root.mainloop()
