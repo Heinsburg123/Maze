@@ -1,5 +1,7 @@
 from tkinter import *
 from functools import cmp_to_key
+from collections import deque 
+import math
 import heapq
 
 root = Tk()
@@ -49,7 +51,7 @@ def check_inter(line1,line2):
         return False
 
 def dis(a,b):
-    return (a.x-b.x)**2+(a.y-b.y)**2
+    return math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
 
 c=Canvas(root,bg='white',height=700,width=1500)
 
@@ -222,7 +224,7 @@ def line_of_sight(cen,extra):
         prev=(arr[j].id-1)%(len(vertice)-extra)
         pos=(arr[j].id+1)%(len(vertice)-extra) 
         if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
-            if((cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)) or (convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
+            if(((cen.id<0 and arr[j].id<0) or (cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))) or ((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))):
                 u,v=cen.id,arr[j].id
                 if(u>v):
                     u,v=v,u
@@ -254,6 +256,8 @@ def line_of_sight(cen,extra):
                     code[dis1]={}
                 code[dis1][f'{u},{v}']=seg1
                 heapq.heappush(heap,dis1)
+        if(arr[j].id==-1 or arr[j].id==-2):
+            continue
         if(pos!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))<0 and cross(vec(arr[j],cen),vec(vertice[pos],cen))<0)):
             dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
             seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
@@ -278,7 +282,7 @@ def line_of_sight(cen,extra):
         prev=(arr[j].id-1)%(len(vertice)-extra)
         pos=(arr[j].id+1)%(len(vertice)-extra)  
         if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
-            if((cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)) or (convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex)):
+            if(((cen.id<0 and arr[j].id<0) or (cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))) or ((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))):
                 u,v=cen.id,arr[j].id
                 if(u>v):
                     u,v=v,u
@@ -331,8 +335,6 @@ def line_of_sight(cen,extra):
                 heapq.heappush(heap,dis2)
 
 a=[[] for _ in range(1000)]
-w=[[] for _ in range(1000)]
-d=[[] for _ in range(1000)]
 
 def create_data():
     for i in range(len(vertice)):
@@ -340,21 +342,31 @@ def create_data():
             if(ans.get(i)!=None and ans[i].get(j)!=None and ans[i][j]==1):
                 a[i].append(j)
                 a[j].append(i)
-                w[i].append(dis(vertice[i],vertice[j]))
-                w[j].append(dis(vertice[i],vertice[j]))
+    for i in range(len(vertice)):
+        convex1,convex2=0,0
+        prev1=(i-1)%len(vertice)
+        pos1=(i+1)%len(vertice)
+        prev2=i
+        pos2=(i+2)%len(vertice)
+        if(cross(vec(vertice[prev1],vertice[i]),vec(vertice[i],vertice[pos1]))<0):
+            convex1=1
+        if(cross(vec(vertice[prev2],vertice[(i+1)%len(vertice)]),vec(vertice[(i+1)%len(vertice)],vertice[pos2]))<0):
+            convex2=1
+        if(check_taunt(vertice[i],vertice[(i+1)%len(vertice)],vertice[prev2],vertice[pos2],convex2)==True and check_taunt(vertice[(i+1)%len(vertice)],vertice[i],vertice[prev1],vertice[pos1],convex1)==True):
+            a[i].append(i+1)
+            a[i+1].append(i)
+        
 def add_node(p,ind,size):
-    for i in range(size-1):
-        if(ans.get(ind)!=None and ans[ind].get(i)!=None and ans[ind][i]==1):
+    for i in range(size):
+        if(ans.get(ind)!=None and ans[ind].get(vertice[i].id)!=None and ans[ind][vertice[i].id]==1):
             a[size].append(i)
             a[i].append(size)
-            w[size].append(dis(p,vertice[i]))
-            w[i].append(dis(p,vertice[i]))
 
 dem=0
 p1=point(0,0)
 p2=point(0,0)
 
-for i in range(28):
+for i in range(len(vertice)):
     line_of_sight(vertice[i],0)
 
 create_data()
@@ -378,6 +390,48 @@ def click(e):
         for i in range(len(vertice)):
             for j in a[i]:
                 c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
+        find_path()
+def find_path():
+    d=[100000000 for _ in range(1000)]
+    close=[0 for _ in range(1000)]
+    d[len(vertice)-2]=0
+    cha=[0 for _ in range(1000)]
+    code={}
+    heap=[]
+    code[0]=deque([len(vertice)-2])
+    heapq.heapify(heap)
+    heapq.heappush(heap,0)
+    while len(heap)>0:
+        dd=heapq.heappop(heap)
+        u=code[dd][0]
+        code[dd].popleft()
+        if(dd>d[u]):
+            continue
+        if(close[u]==1):
+            continue
+        close[u]=1
+        for v in a[u]:
+            if(d[u]+dis(vertice[u],vertice[v])>d[len(vertice)-1]):
+                continue
+            if(d[v]>d[u]+dis(vertice[u],vertice[v])):
+                if(v==13):
+                    print(u)
+                d[v]=d[u]+dis(vertice[u],vertice[v])
+                cha[v]=u
+                heapq.heappush(heap,d[v])
+                if(code.get(d[v])==None):
+                    code[d[v]]=deque([])
+                code[d[v]].append(v)
+    v=len(vertice)-1
+    u=len(vertice)-2
+    # print(d[v])
+    while(cha[v]!=u):
+        c.create_line(vertice[v].x,-vertice[v].y,vertice[cha[v]].x,-vertice[cha[v]].y,fill='blue')
+        v=cha[v]
+    c.create_line(vertice[v].x,-vertice[v].y,vertice[cha[v]].x,-vertice[cha[v]].y,fill='blue')
+
+
+
 
 c.bind('<Button 1>',click)
 c.pack()
