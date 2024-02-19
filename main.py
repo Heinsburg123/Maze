@@ -55,93 +55,37 @@ def dis(a,b):
 
 c=Canvas(root,bg='white',height=700,width=1500)
 
+node_fr=[(0,0),(1,0),(1,4),(2,4),(2,0),(5,0),(5,1),(3,1),(3,2),(5,2),(5,3),(3,3),(3,4),(6,4),(6,0),(9,0),(9,1),(7,1),(7,2),(9,2),(9,3),(7,3),(7,4),(10,4),(10,6)]
+node_back=[(0,0),(-1,0),(-1,-1),(-10,-1),(-10,-6)]
 vertice=[]
 edge=[]
 c.place(x=0,y=80)
 
 def draw(x,y,k):
-    vertice.append(point(x,y))
-    l1=c.create_line(x,y,x+29,y)
-    vertice.append(point(x+29,y))
-    c.create_line(x+29,y,x+29,y+29*4)
-    vertice.append(point(x+29,y+29*4))
-    c.create_line(x+29,y+29*4,x+29*2,y+29*4)
-    vertice.append(point(x+29*2,y+29*4))
-    c.create_line(x+29*2,y+29*4,x+29*2,y)
-    vertice.append(point(x+29*2,y))
-    c.create_line(x+29*2,y,x+29*5,y)
-    vertice.append(point(x+29*5,y))
-    c.create_line(x+29*5,y,x+29*5,y+29)
-    vertice.append(point(x+29*5,y+29))
-    c.create_line(x+29*5,y+29,x+29*3,y+29)
-    vertice.append(point(x+29*3,y+29))
-    c.create_line(x+29*3,y+29,x+29*3,y+29*2)
-    vertice.append(point(x+29*3,y+29*2))
-    c.create_line(x+29*3,y+29*2,x+29*5,y+29*2)
-    vertice.append(point(x+29*5,y+29*2))
-    c.create_line(x+29*5,y+29*2,x+29*5,y+29*3)
-    vertice.append(point(x+29*5,y+29*3))
-    c.create_line(x+29*5,y+29*3,x+29*3,y+29*3)
-    vertice.append(point(x+29*3,y+29*3))
-    c.create_line(x+29*3,y+29*3,x+29*3,y+29*4)
-    vertice.append(point(x+29*3,y+29*4))
-    c.create_line(x+29*3,y+29*4,x+29*6,y+29*4)
-    vertice.append(point(x+29*6,y+29*4))
-    c.create_line(x+29*6,y+29*4,x+29*6,y)
-    vertice.append(point(x+29*6,y))
-    c.create_line(x+29*6,y,x+29*9,y)
-    vertice.append(point(x+29*9,y))
-    c.create_line(x+29*9,y,x+29*9,y+29)
-    vertice.append(point(x+29*9,y+29))
-    c.create_line(x+29*9,y+29,x+29*7,y+29)
-    vertice.append(point(x+29*7,y+29))
-    c.create_line(x+29*7,y+29,x+29*7,y+29*2)
-    vertice.append(point(x+29*7,y+29*2))
-    c.create_line(x+29*7,y+29*2,x+29*9,y+29*2)
-    vertice.append(point(x+29*9,y+29*2))
-    c.create_line(x+29*9,y+29*2,x+29*9,y+29*3)
-    vertice.append(point(x+29*9,y+29*3))
-    c.create_line(x+29*9,y+29*3,x+29*7,y+29*3)
-    vertice.append(point(x+29*7,y+29*3))
-    c.create_line(x+29*7,y+29*3,x+29*7,y+29*4)
-    vertice.append(point(x+29*7,y+29*4))
-    c.create_line(x+29*7,y+29*4,x+29*10,y+29*4)
-    vertice.append(point(x+29*10,y+29*4))
-    c.create_line(x+29*10,y+29*4,x+29*10,y+29*6)
-    vertice.append(point(x+29*10,y+29*6))
-    l2=c.create_line(x+29*10,y+29*6,x+29*9,y+29*6)
-    vertice.append(point(x+29*9,y+29*6))
-    c.create_line(x+29*9,y+29*6,x+29*9,y+29*5)
-    vertice.append(point(x+29*9,y+29*5))
-    c.create_line(x+29*9,y+29*5,x,y+29*5)
-    vertice.append(point(x,y+29*5))
-    c.create_line(x,y+29*5,x,y)
-    if(k==0):
-        c.delete(l2)
-    if(k==1):
-        c.delete(l1)
-        c.delete(l2)
-    if(k==2):
-        c.delete(l1)
-    return (x+29*9,y+29*6)
-
-def create_map(n):
-    x,y=0,0
-    if(n==1):
-        draw(144,140,-1)
-        return
-    for i in range(0,n):
-        if(i==0):
-            x,y=draw(100,100,0)
-        if(i>0 and i<n-1):
-            x,y=draw(x,y,1)
-        if(i==n-1):
-            x,y=draw(x,y,2)
-create_map(1)
+    for i in range(1,25):
+        c.create_line(x+29*node_fr[i-1][0],y+29*node_fr[i-1][1],x+29*node_fr[i][0],y+29*node_fr[i][1])
+        vertice.append(point(x+29*node_fr[i][0],y+29*node_fr[i][1]))
+    x_end,y_end=x+29*node_fr[24][0],y+29*node_fr[24][1]
+    for i in range(k-1):
+        for j in range(2,25):
+            c.create_line(x_end+29*node_fr[j-1][0]-29,y_end+29*node_fr[j-1][1],x_end+29*node_fr[j][0]-29,y_end+29*node_fr[j][1])
+            vertice.append(point(x_end+29*node_fr[j][0]-29,y_end+29*node_fr[j][1]))
+        x_end,y_end=x_end+29*node_fr[24][0]-29,y_end+29*node_fr[24][1]
+    for i in range(1,5):
+        c.create_line(x_end+29*node_back[i-1][0],y_end+29*node_back[i-1][1],x_end+29*node_back[i][0],y_end+29*node_back[i][1])
+        vertice.append(point(x_end+29*node_back[i][0],y_end+29*node_back[i][1]))
+    x_end,y_end=x_end+29*node_back[4][0],y_end+29*node_back[4][1]
+    for i in range(k-1):
+        for j in range(2,5):
+            c.create_line(x_end+29*node_back[j-1][0]+29,y_end+29*node_back[j-1][1],x_end+29*node_back[j][0]+29,y_end+29*node_back[j][1])
+            vertice.append(point(x_end+29*node_back[j][0]+29,y_end+29*node_back[j][1]))
+        x_end,y_end=x_end+29*node_back[4][0]+29,y_end+29*node_back[4][1]
+draw(100,100,3)
 b1=Button(root, text='find')
 b2=Button(root,text='clear')
 b1.place(x=20,y=20)
 b2.place(x=100,y=20)
+
 
 def check(heap,code,line):
     if(len(heap)==0):
@@ -414,8 +358,6 @@ def find_path():
             if(d[u]+dis(vertice[u],vertice[v])>d[len(vertice)-1]):
                 continue
             if(d[v]>d[u]+dis(vertice[u],vertice[v])):
-                if(v==13):
-                    print(u)
                 d[v]=d[u]+dis(vertice[u],vertice[v])
                 cha[v]=u
                 heapq.heappush(heap,d[v])
@@ -424,7 +366,6 @@ def find_path():
                 code[d[v]].append(v)
     v=len(vertice)-1
     u=len(vertice)-2
-    # print(d[v])
     while(cha[v]!=u):
         c.create_line(vertice[v].x,-vertice[v].y,vertice[cha[v]].x,-vertice[cha[v]].y,fill='blue')
         v=cha[v]
