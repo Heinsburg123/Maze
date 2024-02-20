@@ -53,6 +53,32 @@ def check_inter(line1,line2):
 def dis(a,b):
     return math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
 
+def dis_to_p(p,seg1):
+    seg2=segment(0,0,1,1)
+    seg2.a=-seg1.b
+    seg2.b=seg1.a
+    seg2.c=seg2.a*p.x+seg2.b*p.y
+    det=seg1.a*seg2.b-seg2.a*seg1.b
+    if(det==0):
+        return min(dis(p,point(seg1.x1,seg1.y1)),dis(p,point(seg1.x2,seg1.y2)))
+    X=(seg2.b*seg1.c - seg1.b*seg2.c)/det
+    Y=(seg1.a*seg2.c - seg2.a*seg1.c)/det
+    seg2.x1=100000
+    if(seg2.b==0):
+        seg2.y1==100000
+    else:
+        seg2.y1=(seg2.c-seg2.x1*seg2.a)/seg2.b
+    seg2.x2=-100000
+    if(seg2.b==0):
+        seg2.y2==-100000
+    else:
+        seg2.y2=(seg2.c-seg2.x2*seg2.a)/seg2.b
+    p_new=point(X,Y)
+    if(check_inter(seg1,seg2)):
+        return dis(p,p_new)
+    else:
+        return min(dis(p,point(seg1.x1,seg1.y1)),dis(p,point(seg1.x2,seg1.y2)))
+
 c=Canvas(root,bg='white',height=700,width=1500)
 
 node_fr=[(0,0),(1,0),(1,4),(2,4),(2,0),(5,0),(5,1),(3,1),(3,2),(5,2),(5,3),(3,3),(3,4),(6,4),(6,0),(9,0),(9,1),(7,1),(7,2),(9,2),(9,3),(7,3),(7,4),(10,4),(10,6)]
@@ -62,6 +88,7 @@ edge=[]
 c.place(x=0,y=80)
 
 def draw(x,y,k):
+    vertice.append(point(x,y))
     for i in range(1,25):
         c.create_line(x+29*node_fr[i-1][0],y+29*node_fr[i-1][1],x+29*node_fr[i][0],y+29*node_fr[i][1])
         vertice.append(point(x+29*node_fr[i][0],y+29*node_fr[i][1]))
@@ -80,6 +107,7 @@ def draw(x,y,k):
             c.create_line(x_end+29*node_back[j-1][0]+29,y_end+29*node_back[j-1][1],x_end+29*node_back[j][0]+29,y_end+29*node_back[j][1])
             vertice.append(point(x_end+29*node_back[j][0]+29,y_end+29*node_back[j][1]))
         x_end,y_end=x_end+29*node_back[4][0]+29,y_end+29*node_back[4][1]
+    vertice.pop()
 draw(100,100,3)
 b1=Button(root, text='find')
 b2=Button(root,text='clear')
@@ -122,12 +150,18 @@ def line_of_sight(cen,extra):
         if(v1.x>0 and v2.x<=0):
             return 1
         if(v1.x==0 and v2.x==0):
-            if(abs(v1.y)<=abs(v2.y)):
-                return -1
+            if(v1.y*v2.y>=0):
+                if(abs(v1.y)<=abs(v2.y)):
+                    return -1
+                else:
+                    return 1
             else:
-                return 1
+                if(v1.y>=v2.y):
+                    return -1
+                else:
+                    return 1
         if(v1.y==0 and v2.y==0):
-            if(abs(v1.x)<=abs(v2.x)):
+            if(v1.x<=v2.x):
                 return -1
             else:
                 return 1
@@ -174,18 +208,23 @@ def line_of_sight(cen,extra):
                     u,v=v,u
                 if(ans.get(u)==None):
                     ans[u]={}
-                ans[u][v]=1
+                    ans[u][v]=1
+                if(ans[u].get(v)==None):
+                    ans[u][v]=1
         if(check(heap,code,seg)==True and prev!=cen.id and pos!=cen.id):
             u,v=cen.id,arr[j].id
             if(u>v):
                 u,v=v,u
-            if(ans.get(u)!=None and ans[u].get(v)!=None):
-                ans[u].pop(v)
-            if(ans.get(u)!=None and len(ans[u])==0):
-                ans.pop(u)
+            if(ans.get(u)==None):
+                ans[u]={}
+            ans[u][v]=0
+        if(arr[j].id==-1 or arr[j].id==-2):
+            continue
         if(prev!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[prev],cen))<0 and cross(vec(arr[j],cen),vec(vertice[prev],cen))<0)):
-            dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
+            # if(arr[j].id==40):
+            #     print(arr[start].id,arr[j].id)
             seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
+            dis1=dis_to_p(cen,seg1)
             u,v=prev,arr[j].id
             if(u>v):
                 u,v=v,u
@@ -200,11 +239,9 @@ def line_of_sight(cen,extra):
                     code[dis1]={}
                 code[dis1][f'{u},{v}']=seg1
                 heapq.heappush(heap,dis1)
-        if(arr[j].id==-1 or arr[j].id==-2):
-            continue
         if(pos!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[pos],cen))<0 and cross(vec(arr[j],cen),vec(vertice[pos],cen))<0)):
-            dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
             seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
+            dis2=dis_to_p(cen,seg2)
             u,v=arr[j].id,pos
             if(u>v):
                 u,v=v,u
@@ -219,12 +256,12 @@ def line_of_sight(cen,extra):
                     code[dis2]={}
                 code[dis2][f'{u},{v}']=seg2
                 heapq.heappush(heap,dis2)
-    for j in range(len(vertice)):
+    for j in range(len(arr)):
         if(arr[j].id==cen.id):
             continue
         seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
         prev=(arr[j].id-1)%(len(vertice)-extra)
-        pos=(arr[j].id+1)%(len(vertice)-extra)  
+        pos=(arr[j].id+1)%(len(vertice)-extra) 
         if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
             if(((cen.id<0 and arr[j].id<0) or (cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))) or ((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))):
                 u,v=cen.id,arr[j].id
@@ -232,20 +269,21 @@ def line_of_sight(cen,extra):
                     u,v=v,u
                 if(ans.get(u)==None):
                     ans[u]={}
-                ans[u][v]=1
+                    ans[u][v]=1
+                if(ans[u].get(v)==None):
+                    ans[u][v]=1
         if(check(heap,code,seg)==True and prev!=cen.id and pos!=cen.id):
             u,v=cen.id,arr[j].id
             if(u>v):
                 u,v=v,u
-            if(ans.get(u)!=None and ans[u].get(v)):
-                ans[u].pop(v)
-            if(ans.get(u)!=None and len(ans[u])==0):
-                ans.pop(u)
+            if(ans.get(u)==None):
+                ans[u]={}
+            ans[u][v]=0
         if(arr[j].id==-1 or arr[j].id==-2):
             continue
         if(prev!=cen.id):
-            dis1=min(dis(cen,vertice[prev]),dis(cen,arr[j]),dis(cen,point((vertice[prev].x+arr[j].x)/2,(vertice[prev].y+arr[j].y)/2)))
             seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
+            dis1=dis_to_p(cen,seg1)
             u,v=prev,arr[j].id
             if(u>v):
                 u,v=v,u
@@ -261,8 +299,8 @@ def line_of_sight(cen,extra):
                 code[dis1][f'{u},{v}']=seg1
                 heapq.heappush(heap,dis1)
         if(pos!=cen.id):
-            dis2=min(dis(cen,vertice[pos]),dis(cen,arr[j]),dis(cen,point((vertice[pos].x+arr[j].x)/2,(vertice[pos].y+arr[j].y)/2)))
             seg2=segment(arr[j].x,arr[j].y,vertice[pos].x,vertice[pos].y)
+            dis2=dis_to_p(cen,seg2)
             u,v=arr[j].id,pos
             if(u>v):
                 u,v=v,u
