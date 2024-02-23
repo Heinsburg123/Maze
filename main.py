@@ -4,6 +4,7 @@ from functools import cmp_to_key
 from collections import deque 
 import math
 import heapq
+import time
 
 root = Tk()
 
@@ -43,6 +44,11 @@ cha=[]
 dem=0
 k=1
 click_path=0
+total=0
+total_dis=0
+start_x=100
+start_y=100
+pixel=10
 
 def cross(a,b):
     return (a.x*b.y-a.y*b.x)
@@ -65,7 +71,9 @@ def check_inter(line1,line2,Click):
         return False
     X=(line2.b*line1.c - line1.b*line2.c)/det
     Y=(line1.a*line2.c-line2.a*line1.c)/det
-
+    # if(Click==1):
+    #     print(line2.x1,line2.y1,line2.x2,line2.y2)
+    #     print(min(line1.x1,line1.x2)<=X<=max(line1.x1,line1.x2), min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2), min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2), min(line2.y1,line2.y2)<=Y<=max(line2.y1,line2.y2))
     if(min(line1.x1,line1.x2)<=X<=max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2) and min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line2.y1,line2.y2)<=Y<=max(line2.y1,line2.y2) and Click==False):
         return True
     elif(min(line1.x1,line1.x2)<X<max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2) and min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line2.y1,line2.y2)<Y<max(line2.y1,line2.y2) and Click==True):
@@ -362,7 +370,8 @@ def clear_node():
     ans.pop(-1)
     ans.pop(-2)
     c.delete('all')
-    draw(144,140,1,29,0)
+    T.delete(2.0,END)
+    draw(start_x,start_y,k,pixel,0)
     dem=0
     click_path=0
 
@@ -384,11 +393,13 @@ def show_path():
         c.create_line(vertice[v].x,-vertice[v].y,vertice[cha[v]].x,-vertice[cha[v]].y,fill='blue')
         v=cha[v]
     c.create_line(vertice[v].x,-vertice[v].y,vertice[cha[v]].x,-vertice[cha[v]].y,fill='blue')
+    T.insert(END,f'\nThời gian tìm đường: {round(total,7)}s \n')
+    T.insert(END,f'Khoảng cách giữa 2 điểm là: {total_dis} \n')
 
 def raycast(p,extra):
     check=0
     ray=segment(p.x,p.y,100000,p.y)
-    for i in range(1,len(vertice)-extra):
+    for i in range(len(vertice)-extra):
         seg=segment(vertice[(i-1)%(len(vertice)-extra)].x,vertice[(i-1)%(len(vertice)-extra)].y,vertice[i].x,vertice[i].y)
         if(check_inter(ray,seg,True)):
             check+=1
@@ -403,7 +414,7 @@ def click(e):
         return
     dem+=1
     if(dem==1):
-        if(raycast(point(e.x,-e.y),1)==False):
+        if(raycast(point(e.x,-e.y),0)==False):
             dem-=1
             return 
         p1=point(e.x,-e.y)
@@ -412,8 +423,9 @@ def click(e):
         a.append([])
         line_of_sight(p1,1,len(vertice)-1)
         add_node(p1,-1,len(vertice)-1)
+        c.create_oval(e.x-2,e.y-2,e.x+2,e.y+2,fill='red')
     else:
-        if(raycast(point(e.x,-e.y),2)==False):
+        if(raycast(point(e.x,-e.y),1)==False):
             dem-=1
             return 
         p2=point(e.x,-e.y)
@@ -422,9 +434,11 @@ def click(e):
         a.append([])
         line_of_sight(p2,2,len(vertice)-2)
         add_node(p2,-2,len(vertice)-1)
+        c.create_oval(e.x-2,e.y-2,e.x+2,e.y+2,fill='red')
         find_path()
 
 def find_path():
+    starttime=time.time()
     d=[100000000 for _ in range(len(vertice))]
     d[len(vertice)-2]=0
     close=[0 for _ in range(len(vertice))]
@@ -448,6 +462,11 @@ def find_path():
                 d[v]=d[u]+dis(vertice[u],vertice[v])
                 cha[v]=u
                 heapq.heappush(heap,node(d[v]+dis(vertice[v],vertice[len(vertice)-1]),d[v],v))
+    endttime=time.time()
+    global total
+    total=endttime-starttime
+    global total_dis
+    total_dis=d[len(vertice)-1]
 
 def New_map():
     if(Duplicate.get()==''):
@@ -462,7 +481,14 @@ def New_map():
     cha.clear()
     k=Dup
     dem=0
-    draw(144,140,k,29,1)
+    T.delete('1.0',END)
+    draw(start_x,start_y,k,pixel,1)
+    if(k==1):
+        num=len(vertice)
+    else:
+        num=len(vertice)-2*(k-1)
+    num_ver=f'Số đỉnh là: {num} '
+    T.insert(END,num_ver)
     for i in range(len(vertice)):
         a.append([])
         cha.append([])
@@ -495,6 +521,12 @@ b4=ttk.Button(root,text='Create',command=New_map)
 Dup_lb.place(x=20,y=50)
 Dup_val.place(x=100,y=50)
 b4.place(x=250,y=50)
+
+Info=Label(root,text='Info box')
+T=Text(root,height=700,width=50)
+Info.place(x=1000,y=20)
+T.place(x=1000,y=40)
+
 New_map()
 
 c.bind('<Button 1>',click)
