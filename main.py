@@ -38,7 +38,11 @@ node_fr=[(0,0),(1,0),(1,4),(2,4),(2,0),(5,0),(5,1),(3,1),(3,2),(5,2),(5,3),(3,3)
 node_back=[(0,0),(-1,0),(-1,-1),(-10,-1),(-10,-6)]
 vertice=[]
 ans={}
+a=[]
+cha=[]
 dem=0
+k=1
+click_path=0
 
 def cross(a,b):
     return (a.x*b.y-a.y*b.x)
@@ -142,7 +146,7 @@ def check_taunt(s1,s2,prev,pos,convex):
         return False
     return True
 
-def line_of_sight(cen,extra):
+def line_of_sight(cen,extra,i):
     def cmp(a,b):
         v1=point(a.x-cen.x,a.y-cen.y)
         v2=point(b.x-cen.x,b.y-cen.y)
@@ -226,8 +230,6 @@ def line_of_sight(cen,extra):
         if(arr[j].id==-1 or arr[j].id==-2):
             continue
         if(prev!=cen.id and not (cross(vec(arr[start],cen),vec(arr[j],cen))>=0 and cross(vec(arr[start],cen),vec(vertice[prev],cen))<0 and cross(vec(arr[j],cen),vec(vertice[prev],cen))<0)):
-            # if(arr[j].id==40):
-            #     print(arr[start].id,arr[j].id)
             seg1=segment(arr[j].x,arr[j].y,vertice[prev].x,vertice[prev].y)
             dis1=dis_to_p(cen,seg1)
             u,v=prev,arr[j].id
@@ -348,7 +350,7 @@ def add_node(p,ind,size):
             a[i].append(size)
 
 def clear_node():
-    global dem
+    global dem,click_path
     if(dem<2):
         return
     for _ in range(2):
@@ -362,13 +364,20 @@ def clear_node():
     c.delete('all')
     draw(144,140,1,29,0)
     dem=0
+    click_path=0
 
 def show_visi():
+    global click_path,dem
+    if(dem<2):
+        return
     for i in range(len(vertice)):
         for j in a[i]:
             c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
+    click_path=1
 
 def show_path():
+    if(click_path==0):
+        return
     v=len(vertice)-1
     u=len(vertice)-2
     while(cha[v]!=u):
@@ -401,7 +410,7 @@ def click(e):
         p1.id=-1
         vertice.append(p1)
         a.append([])
-        line_of_sight(p1,1)
+        line_of_sight(p1,1,len(vertice)-1)
         add_node(p1,-1,len(vertice)-1)
     else:
         if(raycast(point(e.x,-e.y),2)==False):
@@ -411,7 +420,7 @@ def click(e):
         p2.id=-2
         vertice.append(p2)
         a.append([])
-        line_of_sight(p2,2)
+        line_of_sight(p2,2,len(vertice)-2)
         add_node(p2,-2,len(vertice)-1)
         find_path()
 
@@ -440,32 +449,53 @@ def find_path():
                 cha[v]=u
                 heapq.heappush(heap,node(d[v]+dis(vertice[v],vertice[len(vertice)-1]),d[v],v))
 
-c=Canvas(root,bg='white',height=700,width=1500)
-c.place(x=0,y=80)
-draw(144,140,1,29,1)
+def New_map():
+    if(Duplicate.get()==''):
+        Dup=1
+    else:
+        Dup=int(Duplicate.get())
+    global k,dem
+    c.delete('all')
+    vertice.clear()
+    ans.clear()
+    a.clear()
+    cha.clear()
+    k=Dup
+    dem=0
+    draw(144,140,k,29,1)
+    for i in range(len(vertice)):
+        a.append([])
+        cha.append([])
+    cha.append([])
+    cha.append([])
+    for i in range(len(vertice)):
+        vertice[i].y=-vertice[i].y
+        vertice[i].id=i
+    for i in range(len(vertice)):
+        line_of_sight(vertice[i],0,i)
+    create_data()
 
-a=[[] for _ in range(len(vertice))]
-cha=[0 for _ in range(len(vertice)+2)]
+c=Canvas(root,bg='white',height=700,width=1000)
+c.place(relx=1.0, rely=1.0, anchor=SE)
 
 p1=point(0,0)
 p2=point(0,0)
-b1=ttk.Button(root, text='show graph',command=show_visi)
-b2=ttk.Button(root,text='clear',command=clear_node)
+b1=ttk.Button(root, text='clear',command=clear_node)
+b2=ttk.Button(root,text='show graph',command=show_visi)
 b3=ttk.Button(root, text='show path', command=show_path)
 b1.place(x=20,y=20)
 b2.place(x=100,y=20)
 b3.place(x=180,y=20)
 
-for i in range(len(vertice)):
-    vertice[i].y=-vertice[i].y
-    vertice[i].id=i
 
-for i in range(len(vertice)):
-    cc=cross(vec(vertice[i],vertice[(i-1)%len(vertice)]),vec(vertice[(i+1)%len(vertice)],vertice[i]))
-    if(cc>0):
-        line_of_sight(vertice[i],0)
-
-create_data()
+Duplicate=StringVar()
+Dup_lb=Label(root,text='Duplicates')
+Dup_val=Entry(root,textvariable=Duplicate)
+b4=ttk.Button(root,text='Create',command=New_map)
+Dup_lb.place(x=20,y=50)
+Dup_val.place(x=100,y=50)
+b4.place(x=250,y=50)
+New_map()
 
 c.bind('<Button 1>',click)
 c.pack()
