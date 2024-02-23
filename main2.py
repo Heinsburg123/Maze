@@ -43,7 +43,7 @@ def check_inter(line1,line2):
     p4=point(line2.x2,line2.y2)
     if(equal(p1,p3) or equal(p1,p4) or equal(p2,p3) or equal(p2,p4)):
         return False
-    if(min(line1.x1,line1.x2)<=X<=max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2)) and (min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line1.y1,line1.y2)<=Y<=max(line2.y1,line2.y2)):
+    if(min(line1.x1,line1.x2)<=X<=max(line1.x1,line1.x2) and min(line1.y1,line1.y2)<=Y<=max(line1.y1,line1.y2)) and (min(line2.x1,line2.x2)<=X<=max(line2.x1,line2.x2) and min(line2.y1,line2.y2)<=Y<=max(line2.y1,line2.y2)):
         return True
     else:
         return False
@@ -234,11 +234,7 @@ for i in range(28):
     start=1
     for j in range(len(arr)):
         index[arr[j].id]=j
-    min_dis=10000000
-    for j in range(1,len(arr)):
-        if(dis(arr[j],cen)<min_dis):
-            min_dis=dis(arr[j],cen)
-            start=j
+    start=len(arr)-1
     code={}
     heap=[]
     heapq.heapify(heap)

@@ -27,6 +27,7 @@ class segment:
         self.c=self.a*x1+self.b*y1
         self.length=(x1-x2)**2+(y1-y2)**2
 
+
 class node:
     def __init__(self, a_star,path, cur):
         self.a_star=a_star
@@ -204,15 +205,10 @@ def line_of_sight(cen,extra,i):
         return
     arr=sorted(vertice,key=cmp_to_key(cmp))
     start=1
-    min_dis=10000000
-    for j in range(1,len(arr)):
-        if(dis(arr[j],cen)<min_dis and arr[j].id!=-1 and arr[j].id!=-2):
-            min_dis=dis(arr[j],cen)
-            start=j
     code={}
     heap=[]
     heapq.heapify(heap)
-    for j in range(start,len(arr)):
+    for j in range(len(arr)):
         if(arr[j].id==cen.id):
             continue
         seg=segment(cen.x,cen.y,arr[j].x,arr[j].y)
@@ -278,15 +274,7 @@ def line_of_sight(cen,extra,i):
         prev=(arr[j].id-1)%(len(vertice)-extra)
         pos=(arr[j].id+1)%(len(vertice)-extra) 
         if(check(heap,code,seg)==False and prev!=cen.id and pos!=cen.id):
-            if(((cen.id<0 and arr[j].id<0) or (cen.id<0 and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))) or ((convex==1 and cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0 and cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0) or (convex==0 and (cross(vec(arr[j],cen),vec(vertice[(i+1)%(len(vertice)-extra)],cen))>0 or cross(vec(arr[j],cen),vec(vertice[(i-1)%(len(vertice)-extra)],cen))<0)) and check_taunt(arr[j],cen,vertice[i-1],vertice[(i+1)%(len(vertice)-extra)],0) and check_taunt(cen,arr[j],vertice[prev],vertice[pos],convex))):
-                u,v=cen.id,arr[j].id
-                if(u>v):
-                    u,v=v,u
-                if(ans.get(u)==None):
-                    ans[u]={}
-                    ans[u][v]=1
-                if(ans[u].get(v)==None):
-                    ans[u][v]=1
+            continue
         if(check(heap,code,seg)==True and prev!=cen.id and pos!=cen.id):
             u,v=cen.id,arr[j].id
             if(u>v):
@@ -377,8 +365,8 @@ def clear_node():
 
 def show_visi():
     global click_path,dem
-    if(dem<2):
-        return
+    # if(dem<2):
+    #     return
     for i in range(len(vertice)):
         for j in a[i]:
             c.create_line(vertice[i].x,-vertice[i].y,vertice[j].x,-vertice[j].y,fill='red')
